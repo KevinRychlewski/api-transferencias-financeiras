@@ -21,13 +21,13 @@ API REST para transferências entre contas correntes bancárias, desenvolvida co
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/KevinRychlewski/DesafioItauFinancias.git
-cd DesafioItauFinancias/DesafioItauFinancia
+git clone https://github.com/KevinRychlewski/api-transferencias-financeiras.git
+cd api-transferencias-financeiras/DesafioItauFinancia
 ```
 
 2. Crie um arquivo `.env` na raiz do projeto (mesmo nível do `docker-compose.yml`) com o seguinte conteúdo:
 ```bash   
-  DB_NAME=desafio_itau
+  DB_NAME=transferencias
   DB_USERNAME=postgres
   DB_PASSWORD=escolha_uma_senha
 ```
