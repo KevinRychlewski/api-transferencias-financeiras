@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
     info = @Info(
-        title = "Desafio Itau Financia",
+        title = "API de Transferências Financeiras",
         version = "1.0",
-        description = "API REST para o desafio do Itau Financia"
+        description = "API REST para transferências entre contas, com lock pessimista e idempotência"
     )
 )
 public class OpenApiConfig {
