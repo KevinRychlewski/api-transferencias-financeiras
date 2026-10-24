@@ -25,12 +25,13 @@ git clone https://github.com/KevinRychlewski/api-transferencias-financeiras.git
 cd api-transferencias-financeiras/DesafioItauFinancia
 ```
 
-2. Crie um arquivo `.env` na raiz do projeto (mesmo nível do `docker-compose.yml`) com o seguinte conteúdo:
-```bash   
-  DB_NAME=transferencias
-  DB_USERNAME=postgres
-  DB_PASSWORD=escolha_uma_senha
+2. Crie um arquivo `.env` na raiz do projeto (mesmo nível do `docker-compose.yml`) com o seguinte conteúdo. O `.env` não é versionado (está no `.gitignore`), então cada pessoa cria o seu:
+```bash
+DB_NAME=transferencias
+DB_USERNAME=postgres
+DB_PASSWORD=escolha_uma_senha
 ```
+
 3. Suba a aplicação e o banco com um único comando:
 ```bash
 docker-compose up --build
@@ -38,20 +39,25 @@ docker-compose up --build
 
 4. A API estará disponível em `http://localhost:8080`.
 
-5. Documentação interativa (Swagger UI):http://localhost:8080/swagger-ui.html
-
+5. Documentação interativa (Swagger UI): http://localhost:8080/swagger-ui.html
 
 ## Como rodar a suíte de testes
 
-Os testes usam Testcontainers, que precisa do Docker rodando na máquina.
+Os testes de integração e de concorrência usam o Testcontainers, que sobe um PostgreSQL temporário em container. Por isso:
 
-```bash
-./mvnw test
-```
+- O **Docker precisa estar aberto e funcionando** (confirme com `docker ps`).
+- As variáveis `DB_USERNAME` e `DB_PASSWORD` precisam estar definidas no ambiente, com os mesmos valores do `.env`.
+
+Na pasta do projeto:
+
+- Linux/Mac: `./mvnw test`
+- Windows (PowerShell): `.\mvnw.cmd test`
 
 Isso executa:
 - **Testes unitários** do `TransferService` (com Mockito, sem tocar banco) — cobrindo valor inválido, contas iguais, conta não encontrada, conta inativa e saldo insuficiente.
 - **Teste de integração de concorrência** — dispara duas transferências simultâneas (threads reais) sobre a mesma conta, usando um Postgres real via Testcontainers, validando que apenas uma tem sucesso e o saldo final nunca fica negativo.
+
+Os testes unitários (Mockito) não dependem do Docker.
 
 ## Endpoints
 
@@ -79,7 +85,7 @@ Como uma transferência sempre bloqueia duas contas (origem e destino), duas tra
 
 Toda requisição de transferência deve incluir um header `Idempotency-Key` (UUID gerado pelo cliente). Se a mesma chave for reenviada, a API retorna a resposta original sem duplicar o débito/crédito.
 
-Mecanismo: a chave é persistida junto com a resposta serializada (JSON) na tabela `idempotency_records`, com constraint `UNIQUE`. Se duas requisições com a mesma chave chegarem simultaneamente, apenas uma consegue persistir; a outra recebe a violação de constraint do banco, tem sua própria transação revertida automaticamente (`@Transactional`), busca o registro já salvo pela concorrente, e devolve essa resposta como sucesso — já que a operação de fato ocorreu, só não através da própria execução.
+Mecanismo: a chave é persistida junto com a resposta serializada (JSON) na tabela `idempotency_records`, com constraint `UNIQUE`, na mesma transação da transferência. Assim, o registro só existe se o débito e o crédito foram confirmados; se algo falhar, o rollback desfaz tudo, inclusive o registro, e o cliente pode tentar novamente. A constraint `UNIQUE` impede que duas execuções gravem a mesma chave, e uma chave já registrada devolve a resposta original sem alterar os saldos.
 
 ## Tratamento de erros
 
@@ -137,6 +143,7 @@ Decisões de escopo tomadas conscientemente, fora do que o desafio exigia:
 - **Sem autenticação**: o desafio não pediu login/JWT, focando em concorrência e idempotência. Em produção, os endpoints precisariam de autenticação.
 - **Sem persistência de histórico de transferências**: não existe entidade `Transfer` salva no banco. Em produção, seria necessária para auditoria e extrato.
 - **Sem validação de formato de CPF**: o campo aceita qualquer string. Validação de dígito verificador não foi implementada por não ser requisito do desafio.
+- **Idempotência sob concorrência**: o cenário de duas requisições simultâneas com a mesma chave ainda não tem teste automatizado dedicado.
 
 ## Estrutura do projeto
 
