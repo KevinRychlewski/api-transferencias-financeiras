@@ -14,10 +14,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tools.jackson.databind.ObjectMapper;
 
+import javax.swing.*;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -109,4 +111,35 @@ public class TransferServiceTest {
             transferService.transferMoney(request, "qualquer-chave-123");
         });
     }
+
+    @Test
+    public void deveTransferirDinheiroQuandoDadosForemValidos() {
+        Account contaOrigem = new Account();
+        contaOrigem.setId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
+        contaOrigem.setCpf("12345678900");
+        contaOrigem.setSaldo(BigDecimal.valueOf(1000));
+        contaOrigem.setAtivo(true);
+
+        Account contaDestino = new Account();
+        contaDestino.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
+        contaDestino.setCpf("09876543211");
+        contaDestino.setSaldo(BigDecimal.valueOf(500));
+        contaDestino.setAtivo(true);
+
+        when(accountRepository.findByIdForUpdate(contaOrigem.getId())).thenReturn(Optional.of(contaOrigem));
+        when(accountRepository.findByIdForUpdate(contaDestino.getId())).thenReturn(Optional.of(contaDestino));
+
+        TransferRequest request = new TransferRequest();
+        request.setSourceAccountId(UUID.fromString(contaOrigem.getId().toString()));
+        request.setDestinationAccountId(UUID.fromString(contaDestino.getId().toString()));
+        request.setAmount(BigDecimal.valueOf(200));
+
+       transferService.transferMoney(request, "qualquer-chave-123");
+
+        assertEquals(0, BigDecimal.valueOf(800).compareTo(contaOrigem.getSaldo()));
+        assertEquals(0, BigDecimal.valueOf(700).compareTo(contaDestino.getSaldo()));
+
+
+    }
+
 }
