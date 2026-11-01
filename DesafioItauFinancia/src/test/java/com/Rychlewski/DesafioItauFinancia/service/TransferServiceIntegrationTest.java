@@ -1,5 +1,6 @@
 package com.Rychlewski.DesafioItauFinancia.service;
 
+import com.Rychlewski.DesafioItauFinancia.TestcontainersConfiguration;
 import com.Rychlewski.DesafioItauFinancia.dto.request.TransferRequest;
 import com.Rychlewski.DesafioItauFinancia.entity.Account;
 import com.Rychlewski.DesafioItauFinancia.repository.AccountRepository;
@@ -7,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.testcontainers.utility.TestcontainersConfiguration;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
