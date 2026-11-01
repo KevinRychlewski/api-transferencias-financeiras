@@ -14,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tools.jackson.databind.ObjectMapper;
 
-import javax.swing.*;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
